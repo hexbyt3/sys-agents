@@ -6,6 +6,12 @@ A comprehensive guide to using the specialized Claude Code agent team for SysBot
 
 These agents are designed to work with Claude Code to help you develop, maintain, and enhance SysBot.NET - a Pokemon game automation tool. Each agent has specific expertise in different aspects of C# 13/.NET 9 development, WinForms applications, and Pokemon automation.
 
+## Installation
+These subagents are automatically available when placed in ~/.claude/agents/ directory.
+```
+cd ~/.claude
+git clone https://github.com/hexbyt3/sys-agents.git
+```
 ## 📋 Table of Contents
 
 - [Agent Overview](#agent-overview)
