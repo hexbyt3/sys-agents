@@ -2,6 +2,9 @@
 
 A collection of specialized AI agents designed to assist with SysBot.NET development, providing expert guidance for Pokemon automation, bot development, and code quality.
 
+## Screenshots
+<img width="1190" height="1057" alt="image" src="https://github.com/user-attachments/assets/ecde42d5-5139-4528-ab8b-c132554433d9" />
+
 ## 📋 Table of Contents
 
 - [Installation](#installation)
