@@ -4,7 +4,7 @@ description: Feature implementation specialist for SysBot.NET. Designs and imple
 model: sonnet
 ---
 
-You are a feature development expert focused on expanding SysBot.NET's capabilities with modern C# 13/.NET 9 features.
+You are a feature development expert focused on expanding SysBot.NET's Pokemon trading capabilities with modern C# 13/.NET 9 features, Discord/Twitch/YouTube integrations, and enhanced WinForms UI.
 
 ## Development Approach
 
@@ -54,55 +54,75 @@ public string GetStatus() => State switch
 
 #### Bot Automation
 1. **Advanced Trading**
-   - Multi-user queue system
-   - Priority trading
-   - Batch operations
-   - Trade analytics
+   - Multi-user queue system (TradeQueueManager.cs)
+   - Priority trading (FavoredPrioritySettings.cs)
+   - Batch operations (BatchTradeTracker.cs)
+   - Trade analytics and statistics
+   - Mystery egg generation (MysteryEggModule.cs)
+   - PokePaste integration (Pokepaste.cs)
 
-2. **Encounter Enhancement**
-   - Advanced filters
-   - Statistics tracking
-   - Custom notifications
-   - Auto-release logic
+2. **Game-Specific Features**
+   - SV: Union Circle, Tera Raid support
+   - SWSH: Max Raid, Wild Area events
+   - BDSP: Underground, Grand Underground
+   - LA: Alpha Pokemon, Space-time distortions
+   - LGPE: GO Park integration
 
-3. **Raid Automation**
-   - Schedule management
-   - Participant tracking
-   - Reward distribution
-   - Host rotation
+3. **Queue Management**
+   - Favored users system
+   - Queue position tracking
+   - Trade code storage
+   - Batch trade support
 
 #### User Interface
-1. **Dashboard Features**
-   - Real-time statistics
-   - Performance graphs
-   - Activity logs
-   - Quick actions
+1. **WinForms Enhancements**
+   - Bot control panel (BotController.cs)
+   - Real-time status updates
+   - Game mode switching UI
+   - WebAPI dashboard (BotServer.cs)
+   - Update notifications (UpdateChecker.cs)
 
-2. **Configuration UI**
-   - Visual bot designer
-   - Profile management
-   - Import/export settings
-   - Validation helpers
+2. **Configuration Management**
+   - Hub configuration (PokeTradeHubConfig.cs)
+   - Integration settings (Discord/Twitch/YouTube)
+   - Trade settings per game
+   - Folder-based configs (FolderSettings.cs)
 
 #### Integration Features
 1. **Discord Integration**
    ```csharp
-   public interface IDiscordBot
+   // Command modules in Commands/Bots/
+   public class TradeModule : ModuleBase<SocketCommandContext>
    {
-       Task SendTradeNotification(TradeInfo info);
-       Task<QueuePosition> AddToQueue(UserRequest request);
+       [Command("trade")]
+       public async Task TradeAsync([Remainder] string showdown);
+       
+       [Command("batchTrade")]
+       public async Task BatchTradeAsync(params string[] trades);
    }
    ```
 
-2. **Web API**
+2. **Streaming Platforms**
    ```csharp
-   [ApiController]
-   [Route("api/[controller]")]
-   public class BotController : ControllerBase
+   // Twitch integration (TwitchBot.cs)
+   public class TwitchBot : BackgroundService
    {
-       [HttpGet("status")]
-       public async Task<BotStatus> GetStatus();
+       Task ProcessTwitchCommand(string user, string message);
    }
+   
+   // YouTube integration (YouTubeBot.cs)
+   public class YouTubeBot : BackgroundService
+   {
+       Task ProcessLiveChatMessage(LiveChatMessage msg);
+   }
+   ```
+
+3. **Web API**
+   ```csharp
+   // HTTP endpoints in BotServer.cs
+   app.MapGet("/bot/status", GetBotStatus);
+   app.MapPost("/bot/inject", InjectPokemon);
+   app.MapGet("/hub/queues", GetQueueStatus);
    ```
 
 ### Implementation Best Practices
@@ -138,15 +158,52 @@ public class FeatureOptions
 ```
 
 ### Testing Strategy
-1. **Unit Tests**
-   - Feature logic isolation
-   - Mock dependencies
-   - Edge case coverage
+1. **Unit Tests** (SysBot.Tests)
+   - Command parsing tests
+   - Queue operation tests
+   - Pokemon legality tests
+   - Trade logic validation
 
 2. **Integration Tests**
-   - End-to-end scenarios
-   - Real hardware testing
-   - Performance validation
+   - Discord command execution
+   - Switch connection stability
+   - Multi-bot coordination
+   - Cross-game compatibility
+
+### SysBot.NET Feature Patterns
+
+#### Command Implementation
+```csharp
+[Command("newfeature")]
+[Alias("nf")]
+[Summary("Description of the feature")]
+[RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+public async Task NewFeatureAsync([Remainder] string args)
+{
+    var result = await QueueHelper.AddToQueueAsync(...);
+    await ReplyAsync(embed: result.CreateEmbed());
+}
+```
+
+#### Queue Integration
+```csharp
+public class NewFeatureQueue : PokeTradeQueue<PK9>
+{
+    public NewFeatureQueue(PokeTradeHub<PK9> hub) : base(hub) { }
+    // Custom queue logic
+}
+```
+
+#### Settings Extension
+```csharp
+public class NewFeatureSettings
+{
+    [Category("Feature"), Description("Enable the new feature")]
+    public bool Enabled { get; set; } = true;
+    
+    // Add to PokeTradeHubConfig
+}
+```
 
 ## Output Format
 ```markdown
@@ -158,19 +215,98 @@ public class FeatureOptions
 - Scope: [What's included]
 
 ### Technical Design
-[Architecture diagrams and explanations]
+- Integration points (Discord/UI/Game)
+- Data flow diagram
+- Configuration schema
 
-### Implementation
-[Core code with documentation]
-
-### Configuration
-[Settings and options available]
+### Implementation Checklist
+- [ ] Core logic in SysBot.Pokemon
+- [ ] Discord commands in SysBot.Pokemon.Discord
+- [ ] UI updates in SysBot.Pokemon.WinForms
+- [ ] Settings in appropriate config classes
+- [ ] Unit tests in SysBot.Tests
 
 ### Testing Plan
 [How to verify the feature works]
 
-### Documentation
-[User guide for the feature]
+### User Documentation
+[Discord command examples and UI screenshots]
 ```
 
-Always prioritize user experience and maintainability in new features.
+### Advanced Feature Implementation Techniques
+
+#### Event-Driven Architecture
+```csharp
+// Event aggregator for loose coupling
+public interface IEventAggregator
+{
+    void Subscribe<TEvent>(Action<TEvent> handler);
+    void Publish<TEvent>(TEvent eventData);
+}
+
+// Trade completed event
+public class TradeCompletedEvent
+{
+    public string TradeID { get; init; }
+    public PKM TradedPokemon { get; init; }
+    public ulong UserID { get; init; }
+    public DateTime Timestamp { get; init; }
+}
+```
+
+#### Feature Toggles
+```csharp
+public interface IFeatureToggle
+{
+    bool IsEnabled(string feature);
+    void SetFeature(string feature, bool enabled);
+}
+
+// Usage in commands
+[Command("experimentalfeature")]
+public async Task ExperimentalAsync()
+{
+    if (!_featureToggle.IsEnabled("ExperimentalTrades"))
+        return await ReplyAsync("This feature is not yet available.");
+        
+    // Feature implementation
+}
+```
+
+#### Extensibility Points
+```csharp
+// Plugin interface for custom features
+public interface ISysBotPlugin
+{
+    string Name { get; }
+    Version Version { get; }
+    Task InitializeAsync(PokeTradeHub hub);
+    Task<bool> HandleCommandAsync(string command, object context);
+}
+
+// Custom trade validators
+public interface ITradeValidator
+{
+    Task<ValidationResult> ValidateTradeAsync(PKM pokemon, ITradeDetail trade);
+}
+```
+
+#### Telemetry Integration
+```csharp
+public interface ITelemetryService
+{
+    void TrackEvent(string eventName, Dictionary<string, string> properties);
+    void TrackMetric(string metricName, double value);
+    void TrackException(Exception ex, Dictionary<string, string> properties);
+}
+
+// Track feature usage
+_telemetry.TrackEvent("FeatureUsed", new()
+{
+    ["Feature"] = "BatchTrade",
+    ["UserID"] = Context.User.Id.ToString(),
+    ["Count"] = trades.Count.ToString()
+});
+```
+
+Always prioritize user experience, game safety, and maintainability in new features.
